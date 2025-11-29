@@ -13,18 +13,20 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Clone Hugging Face Space Repo
+      - name: Set up HF credentials
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone https://"$HF_TOKEN"@huggingface.co/spaces/Quantumplayer/career_conversations hf_space
+          cat <<EOF > ~/.netrc
+          machine huggingface.co
+              login $HF_TOKEN
+              password $HF_TOKEN
+          EOF
+          chmod 600 ~/.netrc
 
-      - name: Set remote with token
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      - name: Clone Hugging Face Space Repo
         run: |
-          cd hf_space
-          git remote set-url origin https://"$HF_TOKEN"@huggingface.co/spaces/Quantumplayer/career_conversations
+          git clone https://huggingface.co/spaces/Quantumplayer/career_conversations hf_space
 
       - name: Sync /me folder
         run: |
