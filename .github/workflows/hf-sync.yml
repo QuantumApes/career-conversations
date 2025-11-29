@@ -13,30 +13,24 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Install Hugging Face Hub
-        run: |
-          pip install huggingface_hub
-
-      - name: Login to Hugging Face
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          python -m huggingface_hub.cli.login --token "$HF_TOKEN"
-
       - name: Clone Hugging Face Space Repo
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone https://$HF_TOKEN@huggingface.co/spaces/Quantumplayer/career_conversations hf_space
+          git clone https://"$HF_TOKEN"@huggingface.co/spaces/Quantumplayer/career_conversations hf_space
 
-      - name: Sync /me folder into the Space repo
+      - name: Sync /me folder
         run: |
           rm -rf hf_space/me
           cp -r me hf_space/me
 
       - name: Commit and Push
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           cd hf_space
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
           git add .
-          git commit -m "Sync from GitHub" || echo "No changes"
+          git commit -m "Sync from GitHub" || echo "No changes to commit"
           git push
