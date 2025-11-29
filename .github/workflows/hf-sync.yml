@@ -19,18 +19,23 @@ jobs:
         run: |
           git clone https://"$HF_TOKEN"@huggingface.co/spaces/Quantumplayer/career_conversations hf_space
 
+      - name: Set remote with token
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd hf_space
+          git remote set-url origin https://"$HF_TOKEN"@huggingface.co/spaces/Quantumplayer/career_conversations
+
       - name: Sync /me folder
         run: |
           rm -rf hf_space/me
           cp -r me hf_space/me
 
       - name: Commit and Push
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           cd hf_space
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
           git add .
-          git commit -m "Sync from GitHub" || echo "No changes to commit"
+          git commit -m "Sync from GitHub" || echo "No changes"
           git push
