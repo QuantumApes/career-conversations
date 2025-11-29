@@ -1,24 +1,48 @@
-name: Sync to Hugging Face Space
+name: Update Hugging Face Space
 
 on:
   push:
     branches:
-      - main
+      - main  # or whatever branch you use
 
 jobs:
-  sync:
-    name: Sync with Hugging Face
+  sync-to-hf:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout Repo
+        uses: actions/checkout@v3
 
-      - name: Sync to Hugging Face Spaces
-        uses: JacobLinCool/huggingface-sync@v1
-        with:
-          hf_token: ${{ secrets.HF_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }} 
-          huggingface_repo_id: Quantumplayer/career_conversations
-          repo_type: space
-          space_sdk: gradio
+      - name: Install huggingface_hub
+        run: pip install huggingface_hub
+
+      - name: Push Updates to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python3 - <<EOF
+          from huggingface_hub import HfApi, Repository
+          import os
+
+          space_id = "USERNAME/SPACE_NAME"  # e.g. quantumapes/career-twin
+          api = HfApi()
+
+          repo_dir = "hf_space_temp"
+
+          # Clone your HF Space
+          if os.path.exists(repo_dir):
+              os.system(f"rm -rf {repo_dir}")
+
+          api.repo_clone(
+              repo_id=space_id,
+              repo_type="space",
+              local_dir=repo_dir,
+              token=HF_TOKEN
+          )
+
+          # Copy updated files from your GitHub repo to the HF repo
+          os.system(f"cp -r me {repo_dir}/me")
+
+          # Commit + push
+          os.system(f"cd {repo_dir} && git add . && git commit -m 'Auto-update from GitHub' || echo 'No changes' && git push")
+          EOF
