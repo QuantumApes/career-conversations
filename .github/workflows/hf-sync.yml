@@ -1,4 +1,4 @@
-name: Update Hugging Face Space
+name: Sync Hugging Face Space (Full Repo)
 
 on:
   push:
@@ -28,10 +28,13 @@ jobs:
         run: |
           git clone https://huggingface.co/spaces/Quantumplayer/career_conversations hf_space
 
-      - name: Sync /me folder
+      - name: Sync full project (except .github and DS_Store)
         run: |
-          rm -rf hf_space/me
-          cp -r me hf_space/me
+          rsync -av --delete \
+            --exclude=".github/" \
+            --exclude=".git/" \
+            --exclude=".DS_Store" \
+            ./ hf_space/
 
       - name: Commit and Push
         run: |
@@ -39,5 +42,5 @@ jobs:
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
           git add .
-          git commit -m "Sync from GitHub" || echo "No changes"
+          git commit -m "Full repo sync from GitHub" || echo "No changes to commit"
           git push
