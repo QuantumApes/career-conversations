@@ -3,7 +3,7 @@ name: Update Hugging Face Space
 on:
   push:
     branches:
-      - main  # or whatever branch you use
+      - main
 
 jobs:
   sync-to-hf:
@@ -13,36 +13,49 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Install huggingface_hub
+      - name: Install Hugging Face Hub
         run: pip install huggingface_hub
 
-      - name: Push Updates to Hugging Face Space
+      - name: Sync to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           python3 - <<EOF
-          from huggingface_hub import HfApi, Repository
-          import os
+          import os, shutil
+          from huggingface_hub import HfApi
 
-          space_id = "USERNAME/SPACE_NAME"  # e.g. quantumapes/career-twin
+          space_id = "Quantumplayer/career_conversations"
+          local_dir = "hf_space"
+
           api = HfApi()
 
-          repo_dir = "hf_space_temp"
+          # delete existing clone folder if it exists
+          if os.path.exists(local_dir):
+              shutil.rmtree(local_dir)
 
-          # Clone your HF Space
-          if os.path.exists(repo_dir):
-              os.system(f"rm -rf {repo_dir}")
-
+          # clone the Hugging Face Space repo
           api.repo_clone(
               repo_id=space_id,
               repo_type="space",
-              local_dir=repo_dir,
-              token=HF_TOKEN
+              local_dir=local_dir,
+              token=os.environ["HF_TOKEN"]
           )
 
-          # Copy updated files from your GitHub repo to the HF repo
-          os.system(f"cp -r me {repo_dir}/me")
+          # source folder in GitHub repo
+          src = "me"
 
-          # Commit + push
-          os.system(f"cd {repo_dir} && git add . && git commit -m 'Auto-update from GitHub' || echo 'No changes' && git push")
+          # destination folder inside hf_space workspace
+          dst = os.path.join(local_dir, "me")
+
+          # remove old /me folder in HF clone if exists
+          if os.path.exists(dst):
+              shutil.rmtree(dst)
+
+          # copy updated /me folder from GitHub into the Space
+          shutil.copytree(src, dst)
+
+          # commit and push the update
+          os.system(f"cd {local_dir} && git add .")
+          os.system(f"cd {local_dir} && git commit -m 'Sync from GitHub' || echo 'No changes to commit'")
+          os.system(f"cd {local_dir} && git push")
           EOF
