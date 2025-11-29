@@ -7,14 +7,18 @@ on:
 
 jobs:
   sync:
+    name: Sync with Hugging Face
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Sync to Hugging Face Hub
-        uses: huggingface/hub-sync@v2
+      - name: Sync to Hugging Face Spaces
+        uses: JacobLinCool/huggingface-sync@v1
         with:
-          repo: "Quantumplayer/career_conversations"
-          token: ${{ secrets.HF_TOKEN }}
+          hf_token: ${{ secrets.HF_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }} 
+          huggingface_repo_id: Quantumplayer/career_conversations
+          repo_type: space
+          space_sdk: gradio
