@@ -13,49 +13,29 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Install Hugging Face Hub
-        run: pip install huggingface_hub
+      - name: Install Hugging Face CLI + Hub
+        run: |
+          pip install huggingface_hub
+          huggingface-cli --version
 
-      - name: Sync to Hugging Face Space
+      - name: Login to Hugging Face
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          python3 - <<EOF
-          import os, shutil
-          from huggingface_hub import HfApi
+          huggingface-cli login --token "$HF_TOKEN"
 
-          space_id = "Quantumplayer/career_conversations"
-          local_dir = "hf_space"
+      - name: Clone Hugging Face Space Repo
+        run: |
+          git clone https://huggingface.co/spaces/Quantumplayer/career_conversations hf_space
 
-          api = HfApi()
+      - name: Sync /me folder into Space
+        run: |
+          rm -rf hf_space/me
+          cp -r me hf_space/me
 
-          # delete existing clone folder if it exists
-          if os.path.exists(local_dir):
-              shutil.rmtree(local_dir)
-
-          # clone the Hugging Face Space repo
-          api.repo_clone(
-              repo_id=space_id,
-              repo_type="space",
-              local_dir=local_dir,
-              token=os.environ["HF_TOKEN"]
-          )
-
-          # source folder in GitHub repo
-          src = "me"
-
-          # destination folder inside hf_space workspace
-          dst = os.path.join(local_dir, "me")
-
-          # remove old /me folder in HF clone if exists
-          if os.path.exists(dst):
-              shutil.rmtree(dst)
-
-          # copy updated /me folder from GitHub into the Space
-          shutil.copytree(src, dst)
-
-          # commit and push the update
-          os.system(f"cd {local_dir} && git add .")
-          os.system(f"cd {local_dir} && git commit -m 'Sync from GitHub' || echo 'No changes to commit'")
-          os.system(f"cd {local_dir} && git push")
-          EOF
+      - name: Commit and Push
+        run: |
+          cd hf_space
+          git add .
+          git commit -m "Sync from GitHub" || echo "No changes to commit"
+          git push
