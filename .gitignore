@@ -1,0 +1,23 @@
+# Secrets
+.env
+*.env
+
+# Virtual environments
+.venv/
+venv/
+astral-venv/
+
+# Python cache
+__pycache__/
+
+# Databases / vectorstores
+*.sqlite3
+chroma/
+*.bin
+
+# Unwanted files
+*.pyc
+
+# Jupyter notebooks (not part of app)
+*.ipynb
+.ipynb_checkpoints/
