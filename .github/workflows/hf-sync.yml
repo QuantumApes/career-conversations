@@ -13,8 +13,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Push to Hugging Face Space
-        uses: huggingface/sync-to-hub@v0
+      - name: Sync to Hugging Face Hub
+        uses: huggingface/hub-sync@v2
         with:
           repo: "Quantumplayer/career_conversations"
           token: ${{ secrets.HF_TOKEN }}
